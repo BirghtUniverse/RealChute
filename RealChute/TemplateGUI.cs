@@ -5,6 +5,7 @@ using RealChute.Extensions;
 using RealChute.Libraries.MaterialsLibrary;
 using RealChute.Libraries.TextureLibrary;
 using UnityEngine;
+using KSP.Localization;
 
 /* RealChute was made by Christophe Savard (stupid_chris). You are free to copy, fork, and modify RealChute as you see
  * fit. However, redistribution is only permitted for unmodified versions of RealChute, and under attribution clause.
@@ -50,7 +51,7 @@ namespace RealChute
         {
             get
             {
-                List<string> errors = [];
+                List<string> errors = new List<string>();
                 float f, max = (float)this.Body.GetMaxAtmosphereAltitude();
                 if (this.calcSelect)
                 {
@@ -82,7 +83,7 @@ namespace RealChute
                     if (!float.TryParse(this.preDepDiam, out float p)) { p = 0; }
                     if (!float.TryParse(this.depDiam, out float d)) { d = 0; }
                     if (!GUIUtils.CheckRange(p, 0.5f, d)) { errors.Add("Predeployed diameter"); }
-                    if (!GUIUtils.CheckRange(d, 1, this.PChute.textures is null ? this.Parachute.maxDiameter : this.Model.MaxDiam)) { errors.Add("Deployed diameter"); }
+                    if (!GUIUtils.CheckRange(d, 1, this.PChute.textures == null ? 70 : this.Model.MaxDiam)) { errors.Add("Deployed diameter"); }
                 }
                 if (!float.TryParse(this.predepClause, out f) || (this.isPressure ? !GUIUtils.CheckRange(f, 0.0001f, (float)this.Body.GetPressureAsl()) : !GUIUtils.CheckRange(f, 10, max)))
                 {
@@ -143,7 +144,7 @@ namespace RealChute
         public string mass = "10", landingSpeed = "6", deceleration = "10", refDepAlt = "700", chuteCount = "1";
         public string deploymentAlt = string.Empty, landingAlt = "0", cutAlt = string.Empty;
         public string preDepSpeed = string.Empty, depSpeed = string.Empty;
-        private static readonly string[] calculationModes = { "Automatic", "Manual" };
+        private static readonly string[] calculationModes = { Local.Automatic, Local.Manual };
         #endregion
 
         #region Constructor
@@ -224,17 +225,17 @@ namespace RealChute
             if (a)
             {
                 GUILayout.FlexibleSpace();
-                GUILayout.Label("Case texture:", GUIUtils.ScaledLabel);
+                GUILayout.Label(Local.casetexture, GUIUtils.ScaledLabel);
             }
             if (b)
             {
                 GUILayout.FlexibleSpace();
-                GUILayout.Label("Chute texture:", GUIUtils.ScaledLabel);
+                GUILayout.Label(Local.chutetexture, GUIUtils.ScaledLabel);
             }
             if (c)
             {
                 GUILayout.FlexibleSpace();
-                GUILayout.Label("Chute model: ", GUIUtils.ScaledLabel);
+                GUILayout.Label(Local.chutemodel, GUIUtils.ScaledLabel);
             }
             GUILayout.FlexibleSpace();
             GUILayout.EndVertical();
@@ -275,10 +276,10 @@ namespace RealChute
                 GUILayout.BeginHorizontal(GUILayout.Height(20f * GameSettings.UI_SCALE));
                 GUILayout.BeginVertical();
                 GUILayout.FlexibleSpace();
-                GUILayout.Label("Current material: " + this.Material.Name, GUIUtils.ScaledLabel);
+                GUILayout.Label(Local.Currentmaterial + this.Material.Name, GUIUtils.ScaledLabel);
                 GUILayout.EndVertical();
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button("Change material", GUIUtils.ScaledButton, GUILayout.Width(150f * GameSettings.UI_SCALE)))
+                if (GUILayout.Button(Local.Changematerial, GUIUtils.ScaledButton, GUILayout.Width(150f * GameSettings.UI_SCALE)))
                 {
                     this.materialsVisible = !this.materialsVisible;
                 }
@@ -291,7 +292,7 @@ namespace RealChute
         {
             #region Calculations
             //Selection mode
-            GUIUtils.CreateTwinToggle("Calculations mode:", ref this.calcSelect, 300f, calculationModes);
+            GUIUtils.CreateTwinToggle(Local.Calculationsmode, ref this.calcSelect, 300f, calculationModes);
             GUILayout.Space(5f * GameSettings.UI_SCALE);
 
             //Calculations
@@ -305,31 +306,31 @@ namespace RealChute
                 this.TypeId = GUILayout.SelectionGrid(this.TypeId, EnumUtils.GetNames<ParachuteType>(), 3, GUIUtils.ScaledButton);
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Toggle(this.getMass, "Use current craft mass", GUIUtils.ScaledToggle, GUILayout.Width(150f * GameSettings.UI_SCALE))) { this.getMass = true; }
+                if (GUILayout.Toggle(this.getMass, Local.Usecraftmass, GUIUtils.ScaledToggle, GUILayout.Width(150f * GameSettings.UI_SCALE))) { this.getMass = true; }
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Toggle(!this.getMass, "Input craft mass", GUIUtils.ScaledToggle, GUILayout.Width(150f * GameSettings.UI_SCALE))) { this.getMass = false; }
+                if (GUILayout.Toggle(!this.getMass, Local.Inputmass, GUIUtils.ScaledToggle, GUILayout.Width(150f * GameSettings.UI_SCALE))) { this.getMass = false; }
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
 
                 if (this.getMass)
                 {
-                    GUILayout.Label("Currently using " + (this.useDry ? "dry mass" : "wet mass"), GUIUtils.ScaledLabel);
-                    if (GUILayout.Button("Switch to " + (this.useDry ? "wet mass" : "dry mass"), GUIUtils.ScaledButton, GUILayout.Width(175f * GameSettings.UI_SCALE))) { this.useDry = !this.useDry; }
+                    GUILayout.Label(Local.Currentlyusing + (this.useDry ? Local.Drymass : Local.Wetmass), GUIUtils.ScaledLabel);
+                    if (GUILayout.Button(Local.Switchto + (this.useDry ? Local.Wetmass : Local.Drymass), GUIUtils.ScaledButton, GUILayout.Width(175f * GameSettings.UI_SCALE))) { this.useDry = !this.useDry; }
                 }
 
                 else
                 {
-                    GUIUtils.CreateEntryArea("Mass to use (t):", ref this.mass, 0.1f, 10000f, 100f);
+                    GUIUtils.CreateEntryArea(Local.Masstouse, ref this.mass, 0.1f, 10000f, 100f);
                 }
                 max = 300;
                 switch (this.Type)
                 {
                     case ParachuteType.MAIN:
-                        label = "Wanted touchdown speed (m/s):"; break;
+                        label = Local.Wantedtouchdownspeed; break;
                     case ParachuteType.DROGUE:
-                        label = "Wanted speed at target alt (m/s):"; max = 5000f; break;
+                        label = Local.Wantedtargetalt/*Wanted speed at target alt (m/s):*/; max = 5000f; break;
                     case ParachuteType.DRAG:
-                        label = "Planned landing speed (m/s):"; break;
+                        label = Local.Plannedlandingspeed; break;
                     default:
                         label = string.Empty; break;
                 }
@@ -337,15 +338,15 @@ namespace RealChute
 
                 if (this.Type == ParachuteType.DROGUE)
                 {
-                    GUIUtils.CreateEntryArea("Target altitude (m):", ref this.refDepAlt, 10f, (float)this.Body.GetMaxAtmosphereAltitude(), 100f);
+                    GUIUtils.CreateEntryArea(Local.Targetaltitude, ref this.refDepAlt, 10f, (float)this.Body.GetMaxAtmosphereAltitude(), 100f);
                 }
 
                 if (this.Type == ParachuteType.DRAG)
                 {
-                    GUIUtils.CreateEntryArea("Wanted deceleration (m/s²):", ref this.deceleration, 0.1f, 100f, 100f);
+                    GUIUtils.CreateEntryArea(Local.Wanteddeceleration, ref this.deceleration, 0.1f, 100f, 100f);
                 }
 
-                GUIUtils.CreateEntryArea("Parachutes used (parachutes):", ref this.chuteCount, 1f, 100f, 100f);
+                GUIUtils.CreateEntryArea(Local.Parachutesused, ref this.chuteCount, 1f, 100f, 100f);
             }
             #endregion
 
@@ -356,14 +357,14 @@ namespace RealChute
                 if (!float.TryParse(this.depDiam, out float d)) { d = -1; }
 
                 //Predeployed diameter
-                GUIUtils.CreateEntryArea("Predeployed diameter (m):", ref this.preDepDiam, 0.1f, d, 100f);
-                if (p != -1) { GUILayout.Label("Resulting area: " + RCUtils.GetArea(p).ToString("0.00") + "m²", GUIUtils.ScaledLabel); }
-                else { GUILayout.Label("Resulting predeployed area: --- m²", GUIUtils.ScaledLabel); }
+                GUIUtils.CreateEntryArea(Local.Predeployeddiameter, ref this.preDepDiam, 0.5f, d, 100f);
+                if (p != -1) { GUILayout.Label(Local.Resultingarea + RCUtils.GetArea(p).ToString("0.00") + "m²", GUIUtils.ScaledLabel); }
+                else { GUILayout.Label(Local.Resultingpredeployedarea, GUIUtils.ScaledLabel); }
 
                 //Deployed diameter
-                GUIUtils.CreateEntryArea("Deployed diameter (m):", ref this.depDiam, p, this.PChute.textures == null ? this.Parachute.maxDiameter : this.Model.MaxDiam, 100f);
-                if (d != 1) { GUILayout.Label("Resulting area: " + RCUtils.GetArea(d).ToString("0.00") + "m²", GUIUtils.ScaledLabel); }
-                else { GUILayout.Label("Resulting deployed area: --- m²", GUIUtils.ScaledLabel); }
+                GUIUtils.CreateEntryArea(Local.Deployeddiameter, ref this.depDiam, 1f, this.PChute.textures == null ? 70f : this.Model.MaxDiam, 100f);
+                if (d != 1) { GUILayout.Label(Local.Resultingarea + RCUtils.GetArea(d).ToString("0.00") + "m²", GUIUtils.ScaledLabel); }
+                else { GUILayout.Label(Local.Resultingdeployedarea, GUIUtils.ScaledLabel); }
             }
             #endregion
 
@@ -374,7 +375,7 @@ namespace RealChute
             //Pressure/alt toggle
             GUILayout.Space(5f * GameSettings.UI_SCALE);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Toggle(this.isPressure, "Pressure predeployment", GUIUtils.ScaledToggle))
+            if (GUILayout.Toggle(this.isPressure, Local.Pressurepredeployment, GUIUtils.ScaledToggle))
             {
                 if (!this.isPressure)
                 {
@@ -383,7 +384,7 @@ namespace RealChute
                 }
             }
             GUILayout.FlexibleSpace();
-            if (GUILayout.Toggle(!this.isPressure, "Altitude predeployment", GUIUtils.ScaledToggle))
+            if (GUILayout.Toggle(!this.isPressure, Local.Altitudepredeployment, GUIUtils.ScaledToggle))
             {
                 if (this.isPressure)
                 {
@@ -397,13 +398,13 @@ namespace RealChute
             //Pressure/alt selection
             if (this.isPressure)
             {
-                label = "Predeployment pressure (atm):";
+                label = Local.Predeploymentpressure;
                 min = 0.0001f;
                 max = (float)this.Body.GetPressureAsl();
             }
             else
             {
-                label = "Predeployment altitude (m):";
+                label = Local.Predeploymentaltitude;
                 min = 10;
                 max = (float)this.Body.GetMaxAtmosphereAltitude();
             }
@@ -446,24 +447,24 @@ namespace RealChute
             }
 
             StringBuilder builder = StringBuilderCache.Acquire();
-            builder.Append("Description:  ").AppendLine(material.Description);
-            builder.Append("\nDrag coefficient:  ").AppendLine(material.DragCoefficient.ToString("0.00#"));
-            builder.Append("\nArea density:  ").Append(material.AreaDensity * 1000).AppendLine("kg/m²");
-            builder.Append("\nArea cost:  ").Append(material.AreaCost.ToString()).Append("F/m²");
-            builder.Append("\nMax temperature: ").Append((material.MaxTemp + RCUtils.AbsoluteZero).ToString()).Append("°C");
-            builder.Append("\nSpecific heat: ").Append(material.SpecificHeat.ToString()).Append("J/kg∙K");
-            builder.Append("\nEmissivity constant: ").Append(material.Emissivity.ToString());
+            builder.Append(Local.Editor_Description).AppendLine(material.Description);
+            builder.Append(Local.Dragcoefficient).AppendLine(material.DragCoefficient.ToString("0.00#"));
+            builder.Append(Local.Areadensity).Append(material.AreaDensity * 1000).AppendLine("kg/m²");
+            builder.Append(Local.Areacost).Append(material.AreaCost.ToString()).Append("F/m²");
+            builder.Append(Local.Maxtemperature).Append((material.MaxTemp + RCUtils.AbsoluteZero).ToString()).Append("°C");
+            builder.Append(Local.Specificheat).Append(material.SpecificHeat.ToString()).Append("J/kg∙K");
+            builder.Append(Local.Emissivityconstant).Append(material.Emissivity.ToString());
             GUILayout.Label(builder.ToStringAndRelease(), GUIUtils.ScaledLabel);
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Choose material", GUIUtils.ScaledButton, GUILayout.Width(150f * GameSettings.UI_SCALE)))
+            if (GUILayout.Button(Local.Choosematerial, GUIUtils.ScaledButton, GUILayout.Width(150f * GameSettings.UI_SCALE)))
             {
                 this.Material = material;
                 this.materialsVisible = false;
             }
-            if (GUILayout.Button("Cancel", GUIUtils.ScaledButton, GUILayout.Width(150f * GameSettings.UI_SCALE)))
+            if (GUILayout.Button(Local.Editor_Cancel, GUIUtils.ScaledButton, GUILayout.Width(150f * GameSettings.UI_SCALE)))
             {
                 this.materialsVisible = false;
             }

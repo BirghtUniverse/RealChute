@@ -17,7 +17,7 @@ namespace RealChute.Libraries.Presets
         public class ChuteParameters
         {
             #region Propreties
-            private readonly string material = "Nylon";
+            private readonly string material = Local.Nylon;
             /// <summary>
             /// Material of the parachute
             /// </summary>

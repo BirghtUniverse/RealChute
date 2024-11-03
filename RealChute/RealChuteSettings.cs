@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using RealChute.Libraries.Presets;
 using UnityEngine;
 
 /* RealChute was made by Christophe Savard (stupid_chris). You are free to copy, fork, and modify RealChute as you see
@@ -15,14 +16,15 @@ namespace RealChute
     public class RealChuteSettings
     {
         #region Instance
+        private static RealChuteSettings instance;
         /// <summary>
         /// Returns the current RealChute_Settings config file
         /// </summary>
-        public static RealChuteSettings Instance { get; } = new();
+        public static RealChuteSettings Instance => instance ?? (instance = new RealChuteSettings());
         #endregion
 
         #region Propreties
-        private bool autoArm = true;
+        private bool autoArm;
         /// <summary>
         /// If parachutes must automatically arm when staged
         /// </summary>
@@ -30,6 +32,26 @@ namespace RealChute
         {
             get => this.autoArm;
             set => this.autoArm = value;
+        }
+
+        private bool jokeActivated;
+        /// <summary>
+        /// If April Fools joke is activated
+        /// </summary>
+        public bool JokeActivated
+        {
+            get => this.jokeActivated;
+            set => this.jokeActivated = value;
+        }
+
+        private bool guiResizeUpdates;
+        /// <summary>
+        /// Whether or not resizing the parachutes through part GUI updates the canopy diameter
+        /// </summary>
+        public bool GuiResizeUpdates
+        {
+            get => this.guiResizeUpdates;
+            set => this.guiResizeUpdates = value;
         }
 
         private bool mustBeEngineer = true;
@@ -52,25 +74,20 @@ namespace RealChute
             set => this.engineerLevel = value;
         }
 
-        private bool jokeActivated;
-        /// <summary>
-        /// If April Fools joke is activated
-        /// </summary>
-        public bool JokeActivated
-        {
-            get => this.jokeActivated;
-            set => this.jokeActivated = value;
-        }
-
-        private bool nyanMode;
+        private bool activateNyan;
         /// <summary>
         /// Whether or not NyanMode™ is activated
         /// </summary>
-        public bool NyanMode
+        public bool ActivateNyan
         {
-            get => this.nyanMode;
-            set => this.nyanMode = value;
+            get => this.activateNyan;
+            set => this.activateNyan = value;
         }
+
+        /// <summary>
+        /// All the current preset nodes
+        /// </summary>
+        public ConfigNode[] Presets { get; }
         #endregion
 
         #region Constructor
@@ -79,27 +96,35 @@ namespace RealChute
         /// </summary>
         public RealChuteSettings()
         {
+            ConfigNode node = new ConfigNode(), settings = new ConfigNode("REALCHUTE_SETTINGS");
             Debug.Log("[RealChute]: Loading settings file.");
             if (!File.Exists(RCUtils.SettingsURL))
             {
-                Debug.LogWarning("[RealChute]: RealChute_Settings.cfg is missing. Creating new.");
-                SaveSettings();
-                return;
+                Debug.LogError("[RealChute]: RealChute_Settings.cfg is missing. Creating new.");
+                settings.AddValue("autoArm", this.autoArm);
+                settings.AddValue("jokeActivated", this.jokeActivated);
+                settings.AddValue("guiResizeUpdates", this.guiResizeUpdates);
+                settings.AddValue("mustBeEngineer", this.mustBeEngineer);
+                settings.AddValue("engineerLevel", this.engineerLevel);
+                settings.AddValue("activateNyan", this.activateNyan);
+                node.AddNode(settings);
+                this.Presets = new ConfigNode[0];
+                node.Save(RCUtils.SettingsURL);
             }
-
-            ConfigNode file = ConfigNode.Load(RCUtils.SettingsURL), settings = null;
-            if (file is null || !file.TryGetNode("REALCHUTE_SETTINGS", ref settings))
+            else
             {
-                Debug.LogWarning("[RealChute]: Could not load RealChute settings, resetting to defaults");
-                SaveSettings();
-                return;
+                node = ConfigNode.Load(RCUtils.SettingsURL);
+                bool mustSave = false;
+                if (!node.TryGetNode("REALCHUTE_SETTINGS", ref settings)) { SaveSettings(); return; }
+                if (!settings.TryGetValue("autoArm", ref this.autoArm)) { mustSave = true; }
+                if (!settings.TryGetValue("jokeActivated", ref this.jokeActivated)) { mustSave = true; }
+                if (!settings.TryGetValue("guiResizeUpdates", ref this.guiResizeUpdates)) { mustSave = true; }
+                if (!settings.TryGetValue("mustBeEngineer", ref this.mustBeEngineer)) { mustSave = true; }
+                if (!settings.TryGetValue("engineerLevel", ref this.engineerLevel)) { mustSave = true; }
+                if (!settings.TryGetValue("activateNyan", ref this.activateNyan)) { mustSave = true; }
+                this.Presets = settings.GetNodes("PRESET");
+                if (mustSave) { SaveSettings(); }
             }
-
-            settings.TryGetValue("autoArm", ref this.autoArm);
-            settings.TryGetValue("mustBeEngineer", ref this.mustBeEngineer);
-            settings.TryGetValue("engineerLevel", ref this.engineerLevel);
-            settings.TryGetValue("jokeActivated", ref this.jokeActivated);
-            settings.TryGetValue("activateNyan", ref this.nyanMode);
         }
         #endregion
 
@@ -107,18 +132,24 @@ namespace RealChute
         /// <summary>
         /// Saves the RealChute_Settings config into GameData
         /// </summary>
-        public void SaveSettings()
+        public static void SaveSettings()
         {
-            ConfigNode settings = new("REALCHUTE_SETTINGS");
-            settings.AddValue("autoArm", this.AutoArm);
-            settings.AddValue("mustBeEngineer", this.MustBeEngineer);
-            settings.AddValue("engineerLevel", this.EngineerLevel);
-            settings.AddValue("jokeActivated", this.JokeActivated);
-            settings.AddValue("activateNyan", this.NyanMode);
-
-            ConfigNode file = new();
-            file.AddNode(settings);
-            file.Save(RCUtils.SettingsURL);
+            ConfigNode settings = new ConfigNode("REALCHUTE_SETTINGS"), node = new ConfigNode();
+            settings.AddValue("autoArm", Instance.autoArm);
+            settings.AddValue("jokeActivated", Instance.jokeActivated);
+            settings.AddValue("guiResizeUpdates", Instance.guiResizeUpdates);
+            settings.AddValue("mustBeEngineer", Instance.mustBeEngineer);
+            settings.AddValue("engineerLevel", Instance.engineerLevel);
+            settings.AddValue("activateNyan", Instance.activateNyan);
+            if (PresetsLibrary.Instance.Presets.Count > 0)
+            {
+                foreach (Preset preset in PresetsLibrary.Instance.Presets.Values)
+                {
+                    settings.AddNode(preset.Save());
+                }
+            }
+            node.AddNode(settings);
+            node.Save(RCUtils.SettingsURL);
             Debug.Log("[RealChute]: Saved settings file.");
         }
         #endregion

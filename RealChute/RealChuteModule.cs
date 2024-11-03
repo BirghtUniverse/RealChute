@@ -7,6 +7,7 @@ using KSP.UI.Screens;
 using RealChute.Extensions;
 using UnityEngine;
 using Random = System.Random;
+using KSP.Localization;
 
 /* RealChute was made by Christophe Savard (stupid_chris). You are free to copy, fork, and modify RealChute as you see
  * fit. However, redistribution is only permitted for unmodified versions of RealChute, and under attribution clause.
@@ -68,7 +69,7 @@ namespace RealChute
         public int chuteCount = 5;
         [KSPField]
         public bool reverseOrientation;
-        [KSPField(guiActive = true, guiName = "Is Safe to Deploy?")]
+        [KSPField]
         public SafeState safeState = SafeState.SAFE;
         #endregion
 
@@ -132,22 +133,22 @@ namespace RealChute
 
         #region Part GUI
         //Deploys the parachutes if possible
-        [KSPEvent(guiActive = true, active = true, externalToEVAOnly = true, guiActiveUnfocused = true, guiName = "Deploy Chute", unfocusedRange = 5)]
+        [KSPEvent(guiActive = true, active = true, externalToEVAOnly = true, guiActiveUnfocused = true, guiName = "#autoLOC_6001348", unfocusedRange = 5)]
         public void GUIDeploy() => ActivateRC();
 
         //Cuts main chute chute
-        [KSPEvent(guiActive = true, active = true, externalToEVAOnly = true, guiActiveUnfocused = true, guiName = "Cut main chute", unfocusedRange = 5)]
+        [KSPEvent(guiActive = true, active = true, externalToEVAOnly = true, guiActiveUnfocused = true, guiName = "#autoLOC_6001347", unfocusedRange = 5)]
         public void GUICut() => this.parachutes.Where(p => p.IsDeployed).ForEach(p => p.Cut());
 
         //Arms parachutes
-        [KSPEvent(guiActive = true, active = true, externalToEVAOnly = true, guiActiveUnfocused = true, guiName = "Arm parachute", unfocusedRange = 5)]
+        [KSPEvent(guiActive = true, active = true, externalToEVAOnly = true, guiActiveUnfocused = true, guiName = "#autoLOC_315636", unfocusedRange = 5)]
         public void GUIArm()
         {
             this.armed = true;
             ActivateRC();
         }
 
-        [KSPEvent(guiActive = true, active = true, externalToEVAOnly = true, guiActiveUnfocused = true, guiName = "Disarm parachute", unfocusedRange = 5)]
+        [KSPEvent(guiActive = true, active = true, externalToEVAOnly = true, guiActiveUnfocused = true, guiName = "#autoLOC_6001351", unfocusedRange = 5)]
         public void GUIDisarm()
         {
             this.armed = false;
@@ -159,7 +160,7 @@ namespace RealChute
         }
 
         //Repacks chute from EVA if in space or on the ground
-        [KSPEvent(guiActive = false, active = true, externalToEVAOnly = true, guiActiveUnfocused = true, guiName = "Repack chute", unfocusedRange = 5)]
+        [KSPEvent(guiActive = false, active = true, externalToEVAOnly = true, guiActiveUnfocused = true, guiName = "#autoLOC_6001350", unfocusedRange = 5)]
         public void GUIRepack()
         {
             if (this.CanRepack)
@@ -167,11 +168,11 @@ namespace RealChute
                 if (!this.CanRepackCareer)
                 {
                     int level = RealChuteSettings.Instance.EngineerLevel;
-                    string message = level > 0 ? $"Only a level {level} and higher engineer can repack a parachute" : "Only an engineer can repack a parachute";
+                    string message = level > 0 ? (Localizer.Format("#RC_Repackminlevel",level)): Local.Repackonlyenginer;
+                    //"Only a level {level} and higher engineer can repack a parachute" : "Only an engineer can repack a parachute"
                     ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                     return;
                 }
-
                 this.part.Effect("rcrepack");
                 this.Repack.guiActiveUnfocused = false;
                 this.oneWasDeployed = false;
@@ -183,7 +184,7 @@ namespace RealChute
         }
 
         //Shows the info window
-        [KSPEvent(guiActive = true, active = true, guiActiveEditor = true, guiName = "Toggle info")]
+        [KSPEvent(guiActive = true, active = true, guiActiveEditor = true, guiName = "#autoLOC_8000031")]
         public void GUIToggleWindow()
         {
             if (!this.visible)
@@ -205,21 +206,21 @@ namespace RealChute
 
         #region Action groups
         //Deploys the parachutes if possible
-        [KSPAction("Deploy chute")]
+        [KSPAction("#autoLOC_6001348")]
         public void ActionDeploy(KSPActionParam param) => ActivateRC();
 
         //Cuts main chute
-        [KSPAction("Cut main chute")]
+        [KSPAction("RC_cutmainchute")]
         public void ActionCut(KSPActionParam param)
         {
             if (this.parachutes.Exists(p => p.IsDeployed)) { GUICut(); }
         }
 
         //Arms parachutes
-        [KSPAction("Arm parachute")]
+        [KSPAction("#autoLOC_315636")]
         public void ActionArm(KSPActionParam param) => GUIArm();
 
-        [KSPAction("Disarm parachute")]
+        [KSPAction("#autoLOC_6001351")]
         public void ActionDisarm(KSPActionParam param)
         {
             if (this.armed) { GUIDisarm(); }
@@ -442,11 +443,11 @@ namespace RealChute
                 {
                     if (!this.displayed)
                     {
-                        ScreenMessages.PostScreenMessage("Parachute deployment failed.", 2.5f, ScreenMessageStyle.UPPER_CENTER);
-                        if (this.part.ShieldedFromAirstream) { ScreenMessages.PostScreenMessage("Reason: parachute is in fairings", 2.5f, ScreenMessageStyle.UPPER_CENTER); }
-                        else if (this.GroundStop) { ScreenMessages.PostScreenMessage("Reason: stopped on the ground.", 2.5f, ScreenMessageStyle.UPPER_CENTER); }
-                        else if (this.atmPressure == 0d) { ScreenMessages.PostScreenMessage("Reason: in space.", 2.5f, ScreenMessageStyle.UPPER_CENTER); }
-                        else { ScreenMessages.PostScreenMessage("Reason: too high.", 2.5f, ScreenMessageStyle.UPPER_CENTER); }
+                        ScreenMessages.PostScreenMessage(Local.deploymentfailed, 2.5f, ScreenMessageStyle.UPPER_CENTER);
+                        if (this.part.ShieldedFromAirstream) { ScreenMessages.PostScreenMessage(Local.Reasonfairings, 2.5f, ScreenMessageStyle.UPPER_CENTER); }
+                        else if (this.GroundStop) { ScreenMessages.PostScreenMessage(Local.Reasonstopped, 2.5f, ScreenMessageStyle.UPPER_CENTER); }
+                        else if (this.atmPressure == 0d) { ScreenMessages.PostScreenMessage(Local.Reasoninspace, 2.5f, ScreenMessageStyle.UPPER_CENTER); }
+                        else { ScreenMessages.PostScreenMessage(Local.Reasontoohigh, 2.5f, ScreenMessageStyle.UPPER_CENTER); }
                         this.displayed = true;
                     }
                     if (time < 0.5 || time >= 1d && time < 1.5 || time >= 2d) { this.part.stackIcon.SetIconColor(XKCDColors.Red); }
@@ -659,16 +660,16 @@ namespace RealChute
             if (!this.SecondaryChute)
             {
                 Parachute parachute = this.parachutes[0];
-                builder.AppendFormat("Parachute material: {0}\n", parachute.material);
+                builder.AppendFormat(Localizer.Format("#RC_Parachutematerial", parachute.material));
                 builder.AppendFormat("Drag coefficient: {0:0.00}\n", parachute.mat.DragCoefficient);
                 builder.AppendFormat("Material max temperature: {0:0.#}°C\n", parachute.mat.MaxTemp + RCUtils.AbsoluteZero);
-                builder.AppendFormat("Predeployed diameter: {0}m\n", parachute.preDeployedDiameter);
-                builder.AppendFormat("Deployed diameter: {0}m\n", parachute.deployedDiameter);
+                builder.AppendFormat(Localizer.Format("#RC_Predeployeddiameter", parachute.preDeployedDiameter));
+                builder.AppendFormat(Localizer.Format("#RC_Deployeddiameter",parachute.deployedDiameter));
                 if (!parachute.minIsPressure) { builder.AppendFormat("Minimum deployment altitude: {0}m\n", parachute.minDeployment); }
-                else { builder.AppendFormat("Minimum deployment pressure: {0}atm\n", parachute.minPressure); }
-                builder.AppendFormat("Deployment altitude: {0}m\n", parachute.deploymentAlt);
-                builder.AppendFormat("Predeployment speed: {0}s\n", parachute.preDeploymentSpeed);
-                builder.AppendFormat("Deployment speed: {0}s\n", parachute.deploymentSpeed);
+                else { builder.AppendFormat(Localizer.Format("#RC_MinimumdeploymentpressureV",parachute.minPressure)); }
+                builder.AppendFormat(Localizer.Format("#RC_DeploymentaltitudeV",parachute.deploymentAlt));
+                builder.AppendFormat(Localizer.Format("#RC_PredeploymentspeedV",parachute.preDeploymentSpeed));
+                builder.AppendFormat(Localizer.Format("#RC_DeploymentspeedsV",parachute.deploymentSpeed));
                 if (parachute.cutAlt >= 0) { builder.AppendFormat("Autocut altitude: {0}m", parachute.cutAlt); }
             }
 
@@ -726,9 +727,9 @@ namespace RealChute
             GUILayout.BeginVertical();
 
             //Top info labels
-            StringBuilder builder = StringBuilderCache.Acquire().Append("Part name: ").AppendLine(this.part.partInfo.title);
-            builder.Append("Symmetry counterparts: ").AppendLine(this.part.symmetryCounterparts.Count.ToString());
-            builder.Append("Part mass: ").Append(this.part.TotalMass().ToString("0.###")).Append("t");
+            StringBuilder builder = StringBuilderCache.Acquire().Append(Local.Partname).AppendLine(this.part.partInfo.title);
+            builder.Append(Local.Symmetrycounterparts).AppendLine(this.part.symmetryCounterparts.Count.ToString());
+            builder.Append(Local.Partmass).Append(this.part.TotalMass().ToString("0.###")).Append("t");
             GUILayout.Label(builder.ToStringAndRelease(), GUIUtils.BoldLabel);
 
             //Beginning scroll
@@ -765,7 +766,7 @@ namespace RealChute
             }
 
             //Close button
-            GUIUtils.CenteredButton("Close", () => this.visible = false);
+            GUIUtils.CenteredButton(Local.Close, () => this.visible = false);
 
             //Closer
             GUILayout.EndVertical();

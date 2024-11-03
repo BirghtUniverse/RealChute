@@ -28,7 +28,7 @@ namespace RealChute
         /// <summary>
         /// Default toggle labels
         /// </summary>
-        private static readonly string[] toggles = { "True", "False" };
+        private static readonly string[] toggles = { Local.True, Local.False };
         #endregion
 
         #region Fields

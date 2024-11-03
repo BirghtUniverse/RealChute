@@ -7,6 +7,7 @@ using RealChute.Libraries;
 using RealChute.Libraries.Presets;
 using RealChute.Libraries.TextureLibrary;
 using UnityEngine;
+using KSP.Localization;
 
 /* RealChute was made by Christophe Savard (stupid_chris). You are free to copy, fork, and modify RealChute as you see
  * fit. However, redistribution is only permitted for unmodified versions of RealChute, and under attribution clause.
@@ -43,7 +44,7 @@ namespace RealChute
         [KSPField]
         public string currentCanopyModels = string.Empty;
         [KSPField]
-        public string currentTypes = "Main";
+        public string currentTypes = Local.Main;
         [KSPField]
         public bool isTweakable = true;
         #endregion
@@ -97,7 +98,7 @@ namespace RealChute
         #region Part GUI
         private static ProceduralChute editorVisibleChute;
 
-        [KSPEvent(active = true, guiActiveEditor = true, guiName = "Show Parachute Editor")]
+        [KSPEvent(active = true, guiActiveEditor = true, guiName = "#RC_ShowEditor")]
         public void GUIToggleEditor()
         {
             if (!this.editorGUI.visible)
@@ -124,7 +125,7 @@ namespace RealChute
             }
 
             this.editorGUI.visible = true;
-            this.Events[nameof(GUIToggleEditor)].guiName = "Hide Parachute Editor";
+            this.Events[nameof(GUIToggleEditor)].guiName = "#RC_HideEditor";
             editorVisibleChute = this;
         }
 
@@ -139,7 +140,7 @@ namespace RealChute
             this.editorGUI.presetSaveVisible = false;
             this.editorGUI.presetWarningVisible = false;
             this.chutes.ForEach(c => c.templateGUI.materialsVisible = false);
-            this.Events[nameof(GUIToggleEditor)].guiName = "Show Parachute Editor";
+            this.Events[nameof(GUIToggleEditor)].guiName = "#RC_ShowEditor";
             editorVisibleChute = null;
 
             // Disable part highlighting
@@ -262,8 +263,8 @@ namespace RealChute
             root.localScale = Vector3.Scale(this.originalSize, size.Size);
             module.caseMass = size.CaseMass;
             module.UpdateMass();
-            bool hasTopNode = part.TryGetAttachNodeById("top", out AttachNode topNode);
-            bool hasBottomNode = part.TryGetAttachNodeById("bottom", out AttachNode bottomNode);
+            bool hasTopNode = part.TryGetAttachNodeById(Local.top, out AttachNode topNode);
+            bool hasBottomNode = part.TryGetAttachNodeById(Local.bottom, out AttachNode bottomNode);
             List<Part> allTopChildParts, allBottomChildParts;
 
             // If this is the root part, move things for the top and the bottom.
@@ -415,10 +416,10 @@ namespace RealChute
         internal void CreatePreset()
         {
             PresetsLibrary.Instance.AddPreset(new Preset(this));
-            RCUtils.PopupDialog("Preset saved", "The \"" + this.editorGUI.presetName + "\" preset was successfully saved!", "Close");
-            print("[RealChute]: Saved the " + this.editorGUI.presetName + " preset to the settings file.");
+            RealChuteSettings.SaveSettings();
+            RCUtils.PopupDialog(Local.Saved,Localizer.Format("#RC_SavedPreset"),this.editorGUI.presetName);
+            print(Localizer.Format("#RC_Savedpresetfile", this.editorGUI.presetName));
         }
-
         //Reloads the size nodes
         private void LoadChutes()
         {

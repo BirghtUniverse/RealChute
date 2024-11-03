@@ -142,7 +142,7 @@ namespace RealChute
                 Debug.Log($"[RealChute]: {this.Part.partInfo.title} {RCUtils.ParachuteNumber(this.id)} - m: {m}t, alt: {alt}m, ρ: {density}kg/m³, v²: {speed}m²/s², a: {acc}m/s²");
 
                 this.parachute.deployedDiameter = RCUtils.Round(Math.Sqrt((8000 * m * acc) / (Math.PI * speed * this.material.DragCoefficient * density * double.Parse(this.templateGUI.chuteCount))));
-                float maxDiam = (this.Textures != null) && (this.Textures.Models.Count > 0) ? this.model.MaxDiam : this.parachute.maxDiameter;
+                float maxDiam = (this.Textures != null) && (this.Textures.Models.Count > 0) ? this.model.MaxDiam : 70f;
                 if (this.parachute.deployedDiameter > this.model.MaxDiam)
                 {
                     this.parachute.deployedDiameter = maxDiam;
@@ -216,7 +216,7 @@ namespace RealChute
             if (this.Textures == null) { return; }
 
             Texture2D texture = null;
-            if (RealChuteSettings.Instance.NyanMode) { texture = GameDatabase.Instance.GetTexture(RCUtils.NyanTextureURL, false); }
+            if (RealChuteSettings.Instance.ActivateNyan) { texture = GameDatabase.Instance.GetTexture(RCUtils.NyanTextureURL, false); }
             else if (this.Textures.TryGetCanopy(this.templateGUI.chuteId, ref this.canopy))
             {
                 if (string.IsNullOrEmpty(this.canopy.TextureURL))
